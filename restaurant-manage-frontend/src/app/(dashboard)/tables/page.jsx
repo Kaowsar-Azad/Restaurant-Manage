@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { API_BASE } from "@/lib/api";
 
 const INITIAL_TABLES = [
   { id: 1, tableNumber: "Table 1", capacity: 2, status: "Available" },
@@ -24,7 +25,7 @@ export default function TablesPage() {
 
   const fetchLiveTables = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/tables");
+      const res = await fetch(`${API_BASE}/api/tables`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -55,7 +56,7 @@ export default function TablesPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/tables", {
+      const res = await fetch(`${API_BASE}/api/tables`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -91,7 +92,7 @@ export default function TablesPage() {
     );
 
     try {
-      await fetch(`http://localhost:5000/api/tables/${id}/status`, {
+      await fetch(`${API_BASE}/api/tables/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),
@@ -102,7 +103,7 @@ export default function TablesPage() {
   const handleDeleteTable = async (id) => {
     setTables(tables.filter((t) => t.id !== id));
     try {
-      await fetch(`http://localhost:5000/api/tables/${id}`, { method: "DELETE" });
+      await fetch(`${API_BASE}/api/tables/${id}`, { method: "DELETE" });
     } catch (e) {}
   };
 

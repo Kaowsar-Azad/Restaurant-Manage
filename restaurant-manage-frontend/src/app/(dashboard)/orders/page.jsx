@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { FiSearch, FiClock, FiTrash2, FiPlus, FiCheck, FiX, FiShoppingBag } from "react-icons/fi";
 import { INITIAL_MENU_ITEMS, INITIAL_CATEGORIES } from "@/data/menuData";
+import { API_BASE } from "@/lib/api";
 
 const INITIAL_ORDERS = [
   {
@@ -70,7 +71,7 @@ export default function OrdersPage() {
 
   const fetchLiveOrders = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/orders");
+      const res = await fetch(`${API_BASE}/api/orders`);
       if (!res.ok) return;
       const json = await res.json();
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -94,7 +95,7 @@ export default function OrdersPage() {
 
   const fetchMenuAndCategories = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/menu");
+      const res = await fetch(`${API_BASE}/api/menu`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -171,7 +172,7 @@ export default function OrdersPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/orders", {
+      const res = await fetch(`${API_BASE}/api/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -225,7 +226,7 @@ export default function OrdersPage() {
 
     if (mongoId) {
       try {
-        await fetch(`http://localhost:5000/api/orders/${mongoId}/status`, {
+        await fetch(`${API_BASE}/api/orders/${mongoId}/status`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ orderStatus: nextStatus }),

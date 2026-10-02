@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiPlus, FiTrash2, FiSearch, FiX, FiUploadCloud, FiImage } from "react-icons/fi";
+import { API_BASE } from "@/lib/api";
 
 import { INITIAL_CATEGORIES, INITIAL_MENU_ITEMS } from "@/data/menuData";
 
@@ -27,7 +28,7 @@ export default function MenuPage() {
 
   const fetchLiveMenu = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/menu");
+      const res = await fetch(`${API_BASE}/api/menu`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -77,7 +78,7 @@ export default function MenuPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/menu", {
+      const res = await fetch(`${API_BASE}/api/menu`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -120,7 +121,7 @@ export default function MenuPage() {
   const handleDeleteItem = async (id) => {
     setItems(items.filter((item) => item.id !== id));
     try {
-      await fetch(`http://localhost:5000/api/menu/${id}`, { method: "DELETE" });
+      await fetch(`${API_BASE}/api/menu/${id}`, { method: "DELETE" });
     } catch (err) {}
   };
 

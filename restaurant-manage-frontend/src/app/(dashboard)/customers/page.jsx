@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi";
+import { API_BASE } from "@/lib/api";
 
 const INITIAL_CUSTOMERS = [
   { id: 1, name: "Tanvir Ahmed", phone: "+880 1711 002233", email: "tanvir.ahmed@example.com", totalOrders: 14, totalSpent: 285.50, lastOrder: "Oct 01, 2026" },
@@ -19,7 +20,7 @@ export default function CustomersPage() {
 
   const fetchLiveCustomers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/customers");
+      const res = await fetch(`${API_BASE}/api/customers`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -53,7 +54,7 @@ export default function CustomersPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/customers", {
+      const res = await fetch(`${API_BASE}/api/customers`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -84,7 +85,7 @@ export default function CustomersPage() {
   const handleDelete = async (id) => {
     setCustomers(customers.filter((c) => c.id !== id));
     try {
-      await fetch(`http://localhost:5000/api/customers/${id}`, { method: "DELETE" });
+      await fetch(`${API_BASE}/api/customers/${id}`, { method: "DELETE" });
     } catch (e) {}
   };
 

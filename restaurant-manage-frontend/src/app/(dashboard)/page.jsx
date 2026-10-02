@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { FiTrendingUp, FiShoppingBag, FiUsers, FiDollarSign, FiRefreshCw, FiCalendar, FiArrowUpRight, FiActivity, FiBarChart2 } from "react-icons/fi";
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
+import { API_BASE } from "@/lib/api";
 
 const DEFAULT_SALES_DATA = [
   { day: "Sat", date: "2026-09-26", sales: 151.45, orders: 5 },
@@ -31,7 +32,7 @@ export default function AnalyticsDashboard() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/analytics/overview");
+      const res = await fetch(`${API_BASE}/api/analytics/overview`);
       if (!res.ok) throw new Error("Network response was not ok");
       const json = await res.json();
       if (json.success && json.data) {

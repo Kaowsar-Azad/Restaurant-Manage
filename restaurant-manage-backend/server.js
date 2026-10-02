@@ -20,6 +20,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/menu", menuRoutes);
@@ -33,6 +38,10 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
