@@ -20,10 +20,10 @@ export default function Topbar({ onMenuToggle = () => {} }) {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    router.push("/login");
+    router.replace("/login");
   };
 
-  const displayName = user?.name || "Admin User";
+  const displayName = user?.name || "User";
   const initial = displayName.charAt(0).toUpperCase();
 
   return (

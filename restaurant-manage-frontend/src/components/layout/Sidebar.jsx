@@ -15,7 +15,7 @@ const ALL_MENU_ITEMS = [
 
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const pathname = usePathname();
-  const [role, setRole] = useState("Admin");
+  const [role, setRole] = useState("Staff");
 
   useEffect(() => {
     try {
