@@ -1,6 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FiBell, FiSearch, FiLogOut } from "react-icons/fi";
 
 export default function Topbar() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        setUser(JSON.parse(stored));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
+
+  const displayName = user?.name || "Admin User";
+  const initial = displayName.charAt(0).toUpperCase();
+
   return (
     <header className="h-16 bg-brand-bg flex items-center justify-between px-8 border-b border-black/5">
       <div className="flex items-center gap-4 text-brand-dark/50">
@@ -22,12 +49,16 @@ export default function Topbar() {
         
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-brand-dark text-brand-bg flex items-center justify-center text-sm font-bold">
-            A
+            {initial}
           </div>
-          <span className="text-sm font-semibold text-brand-dark">Admin User</span>
+          <span className="text-sm font-semibold text-brand-dark">{displayName}</span>
         </div>
 
-        <button className="text-brand-dark/50 hover:text-red-500 transition-colors ml-2">
+        <button 
+          onClick={handleLogout}
+          title="Logout"
+          className="text-brand-dark/50 hover:text-red-500 transition-colors ml-2 cursor-pointer"
+        >
           <FiLogOut className="w-5 h-5" />
         </button>
       </div>

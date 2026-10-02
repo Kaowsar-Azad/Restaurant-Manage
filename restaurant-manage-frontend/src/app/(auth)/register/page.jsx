@@ -1,6 +1,46 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("Staff");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password, role }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Registration failed");
+      }
+
+      router.push("/login");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md bg-brand-white p-10 rounded-2xl shadow-xl shadow-black/5">
       <div className="mb-10 text-center">
@@ -12,7 +52,13 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <form className="space-y-6">
+      {error && (
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleRegister} className="space-y-6">
         <div className="space-y-2">
           <label
             htmlFor="name"
@@ -23,6 +69,9 @@ export default function RegisterPage() {
           <input
             id="name"
             type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             placeholder="John Doe"
             className="w-full px-0 py-2 bg-transparent border-b border-brand-dark/20 focus:border-brand-dark focus:outline-none transition-colors placeholder:text-brand-dark/30 text-brand-dark"
           />
@@ -38,6 +87,9 @@ export default function RegisterPage() {
           <input
             id="email"
             type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="admin@example.com"
             className="w-full px-0 py-2 bg-transparent border-b border-brand-dark/20 focus:border-brand-dark focus:outline-none transition-colors placeholder:text-brand-dark/30 text-brand-dark"
           />
@@ -53,6 +105,9 @@ export default function RegisterPage() {
           <input
             id="password"
             type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
             className="w-full px-0 py-2 bg-transparent border-b border-brand-dark/20 focus:border-brand-dark focus:outline-none transition-colors placeholder:text-brand-dark/30 text-brand-dark"
           />
@@ -67,19 +122,22 @@ export default function RegisterPage() {
           </label>
           <select
             id="role"
-            className="w-full px-0 py-2 bg-transparent border-b border-brand-dark/20 focus:border-brand-dark focus:outline-none transition-colors text-brand-dark appearance-none"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full px-0 py-2 bg-transparent border-b border-brand-dark/20 focus:border-brand-dark focus:outline-none transition-colors text-brand-dark appearance-none cursor-pointer"
           >
-            <option value="Admin">Admin</option>
-            <option value="Manager">Manager</option>
             <option value="Staff">Staff</option>
+            <option value="Manager">Manager</option>
+            <option value="Admin">Admin</option>
           </select>
         </div>
 
         <button
-          type="button"
-          className="w-full py-4 mt-8 bg-brand-accent text-brand-dark font-semibold rounded-lg hover:bg-[#e4fa9c] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+          type="submit"
+          disabled={loading}
+          className="w-full py-4 mt-8 bg-brand-accent text-brand-dark font-semibold rounded-lg hover:bg-[#e4fa9c] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50"
         >
-          Create Account
+          {loading ? "Creating account..." : "Create Account"}
         </button>
       </form>
 
