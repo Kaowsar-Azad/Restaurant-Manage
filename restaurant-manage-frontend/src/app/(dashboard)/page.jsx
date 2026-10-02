@@ -67,7 +67,7 @@ export default function AnalyticsDashboard() {
       title: "Total Sales",
       value: `$${summary.totalSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       icon: FiDollarSign,
-      trend: isLive ? "Live MongoDB" : "Syncing",
+      trend: isLive ? "Live" : "Syncing",
       trendColor: "bg-emerald-100 text-emerald-800",
       accentBg: "bg-emerald-500/10 text-emerald-600",
     },
@@ -163,7 +163,7 @@ export default function AnalyticsDashboard() {
               }`}
             />
             <span className="text-xs font-bold text-brand-dark">
-              {isLive ? "Live Recharts & MongoDB" : "Connecting to Database..."}
+              {isLive ? "Live Charts" : "Syncing..."}
             </span>
           </div>
 
@@ -211,7 +211,7 @@ export default function AnalyticsDashboard() {
                 </span>
               </div>
               <p className="text-xs text-brand-dark/50 mt-0.5">
-                Dynamic 7-day analytics powered by Recharts & MongoDB
+                Dynamic 7-day revenue & sales analytics
               </p>
             </div>
 
