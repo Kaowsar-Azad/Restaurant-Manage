@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const RestaurantTable = require("../models/RestaurantTable");
 
 const getTables = async (req, res) => {
@@ -40,6 +41,10 @@ const createTable = async (req, res) => {
 
 const updateTableStatus = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Table not found" });
+    }
+
     const { status } = req.body;
     const table = await RestaurantTable.findByIdAndUpdate(
       req.params.id,
@@ -57,6 +62,10 @@ const updateTableStatus = async (req, res) => {
 
 const deleteTable = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Table not found" });
+    }
+
     const table = await RestaurantTable.findByIdAndDelete(req.params.id);
     if (!table) {
       return res.status(404).json({ success: false, message: "Table not found" });

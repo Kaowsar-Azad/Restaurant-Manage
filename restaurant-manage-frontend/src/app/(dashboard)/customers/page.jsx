@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi";
 import { API_BASE } from "@/lib/api";
 
@@ -13,6 +14,24 @@ const INITIAL_CUSTOMERS = [
 ];
 
 export default function CustomersPage() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(null);
+
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      if (u?.role === "Staff") {
+        setIsAuthorized(false);
+        router.replace("/orders");
+      } else {
+        setIsAuthorized(true);
+      }
+    } catch (e) {
+      setIsAuthorized(false);
+      router.replace("/orders");
+    }
+  }, [router]);
+
   const [customers, setCustomers] = useState(INITIAL_CUSTOMERS);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,8 +59,10 @@ export default function CustomersPage() {
   };
 
   useEffect(() => {
-    fetchLiveCustomers();
-  }, []);
+    if (isAuthorized) {
+      fetchLiveCustomers();
+    }
+  }, [isAuthorized]);
 
   const handleAddCustomer = async (e) => {
     e.preventDefault();
@@ -83,11 +104,16 @@ export default function CustomersPage() {
   };
 
   const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this customer?")) return;
     setCustomers(customers.filter((c) => c.id !== id));
     try {
       await fetch(`${API_BASE}/api/customers/${id}`, { method: "DELETE" });
     } catch (e) {}
   };
+
+  if (isAuthorized !== true) {
+    return null;
+  }
 
   const filtered = customers.filter((c) => {
     const q = search.toLowerCase();

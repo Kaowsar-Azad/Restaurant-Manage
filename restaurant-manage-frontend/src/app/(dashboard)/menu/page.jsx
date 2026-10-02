@@ -11,6 +11,7 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState(INITIAL_MENU_ITEMS);
+  const [userRole, setUserRole] = useState("Staff");
 
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
@@ -51,6 +52,10 @@ export default function MenuPage() {
 
   useEffect(() => {
     fetchLiveMenu();
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      if (u?.role) setUserRole(u.role);
+    } catch (e) {}
   }, []);
 
   const handleImageUpload = (e) => {
@@ -119,10 +124,13 @@ export default function MenuPage() {
   };
 
   const handleDeleteItem = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this menu item?")) return;
     setItems(items.filter((item) => item.id !== id));
-    try {
-      await fetch(`${API_BASE}/api/menu/${id}`, { method: "DELETE" });
-    } catch (err) {}
+    if (typeof id === "string" && id.length === 24) {
+      try {
+        await fetch(`${API_BASE}/api/menu/${id}`, { method: "DELETE" });
+      } catch (err) {}
+    }
   };
 
   const filteredItems = items.filter((item) => {
@@ -139,21 +147,23 @@ export default function MenuPage() {
           <h1 className="text-3xl font-bold tracking-tight text-brand-dark mb-1">Menu & Categories</h1>
           <p className="text-brand-dark/60 text-sm">Manage your restaurant's food items, imagery, and menu pricing.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsCatModalOpen(true)}
-            className="px-5 py-2.5 bg-brand-white text-brand-dark font-semibold rounded-xl border border-black/5 hover:bg-brand-bg transition-colors cursor-pointer text-sm"
-          >
-            Add Category
-          </button>
-          <button 
-            onClick={() => setIsItemModalOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer text-sm"
-          >
-            <FiPlus className="w-5 h-5" />
-            <span>Add Menu Item</span>
-          </button>
-        </div>
+        {userRole !== "Staff" && (
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsCatModalOpen(true)}
+              className="px-5 py-2.5 bg-brand-white text-brand-dark font-semibold rounded-xl border border-black/5 hover:bg-brand-bg transition-colors cursor-pointer text-sm"
+            >
+              Add Category
+            </button>
+            <button 
+              onClick={() => setIsItemModalOpen(true)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer text-sm"
+            >
+              <FiPlus className="w-5 h-5" />
+              <span>Add Menu Item</span>
+            </button>
+          </div>
+        )}
       </header>
 
       <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
@@ -201,13 +211,15 @@ export default function MenuPage() {
                 </div>
               )}
               <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-              <button 
-                onClick={() => handleDeleteItem(item.id)}
-                title="Delete item"
-                className="absolute top-3 right-3 p-2 text-red-500 bg-white/90 backdrop-blur hover:bg-red-50 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10"
-              >
-                <FiTrash2 className="w-4 h-4" />
-              </button>
+              {userRole !== "Staff" && (
+                <button 
+                  onClick={() => handleDeleteItem(item.id)}
+                  title="Delete item"
+                  className="absolute top-3 right-3 p-2 text-red-500 bg-white/90 backdrop-blur hover:bg-red-50 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              )}
             </div>
             <div className="p-5 flex flex-col flex-1 justify-between">
               <div>

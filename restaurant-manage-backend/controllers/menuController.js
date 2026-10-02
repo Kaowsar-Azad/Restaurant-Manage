@@ -1,4 +1,6 @@
+const mongoose = require("mongoose");
 const MenuItem = require("../models/MenuItem");
+const Category = require("../models/Category");
 
 const getMenuItems = async (req, res) => {
   try {
@@ -6,7 +8,16 @@ const getMenuItems = async (req, res) => {
     let query = {};
 
     if (category && category !== "All") {
-      query.category = category;
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        query.category = category;
+      } else {
+        const catDoc = await Category.findOne({ name: { $regex: new RegExp(`^${category.trim()}$`, "i") } });
+        if (catDoc) {
+          query.category = catDoc._id;
+        } else {
+          return res.json({ success: true, count: 0, data: [] });
+        }
+      }
     }
 
     if (search) {
@@ -28,9 +39,18 @@ const createMenuItem = async (req, res) => {
       return res.status(400).json({ success: false, message: "Name, price, and category are required" });
     }
 
+    let categoryId = category;
+    if (!mongoose.Types.ObjectId.isValid(category)) {
+      let catDoc = await Category.findOne({ name: { $regex: new RegExp(`^${category.trim()}$`, "i") } });
+      if (!catDoc) {
+        catDoc = await Category.create({ name: category.trim() });
+      }
+      categoryId = catDoc._id;
+    }
+
     const item = await MenuItem.create({
       name: name.trim(),
-      category,
+      category: categoryId,
       price: parseFloat(price),
       description: description || "",
       image: image || "",
@@ -46,7 +66,20 @@ const createMenuItem = async (req, res) => {
 
 const updateMenuItem = async (req, res) => {
   try {
-    const item = await MenuItem.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate("category", "name");
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Menu item not found" });
+    }
+
+    let updateData = { ...req.body };
+    if (updateData.category && !mongoose.Types.ObjectId.isValid(updateData.category)) {
+      let catDoc = await Category.findOne({ name: { $regex: new RegExp(`^${updateData.category.trim()}$`, "i") } });
+      if (!catDoc) {
+        catDoc = await Category.create({ name: updateData.category.trim() });
+      }
+      updateData.category = catDoc._id;
+    }
+
+    const item = await MenuItem.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true }).populate("category", "name");
     if (!item) {
       return res.status(404).json({ success: false, message: "Menu item not found" });
     }
@@ -58,6 +91,10 @@ const updateMenuItem = async (req, res) => {
 
 const deleteMenuItem = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Menu item not found" });
+    }
+
     const item = await MenuItem.findByIdAndDelete(req.params.id);
     if (!item) {
       return res.status(404).json({ success: false, message: "Menu item not found" });

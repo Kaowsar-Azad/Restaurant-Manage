@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Customer = require("../models/Customer");
 
 const getCustomers = async (req, res) => {
@@ -46,6 +47,10 @@ const createCustomer = async (req, res) => {
 
 const deleteCustomer = async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Customer not found" });
+    }
+
     const customer = await Customer.findByIdAndDelete(req.params.id);
     if (!customer) {
       return res.status(404).json({ success: false, message: "Customer not found" });

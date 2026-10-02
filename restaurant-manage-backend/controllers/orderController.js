@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const RestaurantTable = require("../models/RestaurantTable");
 const Customer = require("../models/Customer");
@@ -71,7 +72,15 @@ const createOrder = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    const status = req.body.status || req.body.orderStatus;
+    if (!status) {
+      return res.status(400).json({ success: false, message: "Status is required" });
+    }
+
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       { orderStatus: status },

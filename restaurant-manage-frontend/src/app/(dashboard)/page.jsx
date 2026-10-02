@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FiTrendingUp, FiShoppingBag, FiUsers, FiDollarSign, FiRefreshCw, FiCalendar, FiArrowUpRight, FiActivity, FiBarChart2 } from "react-icons/fi";
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine } from "recharts";
 import { API_BASE } from "@/lib/api";
@@ -16,6 +17,24 @@ const DEFAULT_SALES_DATA = [
 ];
 
 export default function AnalyticsDashboard() {
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(null);
+
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      if (u?.role === "Staff") {
+        setIsAuthorized(false);
+        router.replace("/orders");
+      } else {
+        setIsAuthorized(true);
+      }
+    } catch (e) {
+      setIsAuthorized(false);
+      router.replace("/orders");
+    }
+  }, [router]);
+
   const [chartData, setChartData] = useState(DEFAULT_SALES_DATA);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +78,14 @@ export default function AnalyticsDashboard() {
   };
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
+    if (isAuthorized) {
+      fetchAnalytics();
+    }
+  }, [isAuthorized]);
+
+  if (isAuthorized !== true) {
+    return null;
+  }
 
   const stats = [
     {

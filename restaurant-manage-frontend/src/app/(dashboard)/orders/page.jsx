@@ -229,7 +229,7 @@ export default function OrdersPage() {
         await fetch(`${API_BASE}/api/orders/${mongoId}/status`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orderStatus: nextStatus }),
+          body: JSON.stringify({ status: nextStatus, orderStatus: nextStatus }),
         });
       } catch (e) {}
     }
@@ -343,7 +343,7 @@ export default function OrdersPage() {
                       >
                         {order.paymentStatus.toUpperCase()}
                       </span>
-                      <span className="font-bold text-brand-dark text-sm sm:text-base">${order.total?.toFixed(2)}</span>
+                      <span className="font-bold text-brand-dark text-sm sm:text-base">${Number(order.total || 0).toFixed(2)}</span>
                     </div>
 
                     <button

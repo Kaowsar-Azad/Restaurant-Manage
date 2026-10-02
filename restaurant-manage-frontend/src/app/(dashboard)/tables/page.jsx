@@ -22,6 +22,14 @@ export default function TablesPage() {
   const [filter, setFilter] = useState("All");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTable, setNewTable] = useState({ tableNumber: "", capacity: 4, status: "Available" });
+  const [userRole, setUserRole] = useState("Staff");
+
+  useEffect(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      if (u?.role) setUserRole(u.role);
+    } catch (e) {}
+  }, []);
 
   const fetchLiveTables = async () => {
     try {
@@ -91,20 +99,25 @@ export default function TablesPage() {
       tables.map((t) => (t.id === id ? { ...t, status: nextStatus } : t))
     );
 
-    try {
-      await fetch(`${API_BASE}/api/tables/${id}/status`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
-      });
-    } catch (e) {}
+    if (typeof id === "string" && id.length === 24) {
+      try {
+        await fetch(`${API_BASE}/api/tables/${id}/status`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: nextStatus }),
+        });
+      } catch (e) {}
+    }
   };
 
   const handleDeleteTable = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this table?")) return;
     setTables(tables.filter((t) => t.id !== id));
-    try {
-      await fetch(`${API_BASE}/api/tables/${id}`, { method: "DELETE" });
-    } catch (e) {}
+    if (typeof id === "string" && id.length === 24) {
+      try {
+        await fetch(`${API_BASE}/api/tables/${id}`, { method: "DELETE" });
+      } catch (e) {}
+    }
   };
 
   const filteredTables = tables.filter((t) => filter === "All" || t.status === filter);
@@ -129,13 +142,15 @@ export default function TablesPage() {
           <h1 className="text-3xl font-bold tracking-tight text-brand-dark mb-1">Restaurant Tables</h1>
           <p className="text-brand-dark/60 text-sm">Monitor table occupancy in real time. Click a table badge to change its status.</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer self-start sm:self-auto text-sm"
-        >
-          <FiPlus className="w-5 h-5" />
-          <span>Add Table</span>
-        </button>
+        {userRole !== "Staff" && (
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer self-start sm:self-auto text-sm"
+          >
+            <FiPlus className="w-5 h-5" />
+            <span>Add Table</span>
+          </button>
+        )}
       </header>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
@@ -181,15 +196,17 @@ export default function TablesPage() {
                 </div>
               </div>
 
-              <div className="p-3 border-t border-black/5 bg-brand-bg/30 flex justify-end">
-                <button 
-                  onClick={() => handleDeleteTable(table.id)}
-                  title="Delete table"
-                  className="p-1.5 text-brand-dark/40 hover:text-red-500 rounded-lg transition-colors cursor-pointer"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                </button>
-              </div>
+              {userRole !== "Staff" && (
+                <div className="p-3 border-t border-black/5 bg-brand-bg/30 flex justify-end">
+                  <button 
+                    onClick={() => handleDeleteTable(table.id)}
+                    title="Delete table"
+                    className="p-1.5 text-brand-dark/40 hover:text-red-500 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <FiTrash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
