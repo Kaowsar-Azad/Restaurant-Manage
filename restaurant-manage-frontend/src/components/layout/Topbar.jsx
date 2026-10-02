@@ -14,9 +14,7 @@ export default function Topbar() {
       if (stored) {
         setUser(JSON.parse(stored));
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }, []);
 
   const handleLogout = () => {

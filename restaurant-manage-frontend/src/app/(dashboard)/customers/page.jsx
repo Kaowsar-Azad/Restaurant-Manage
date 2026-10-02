@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi";
 
 const INITIAL_CUSTOMERS = [
@@ -17,27 +17,75 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newCustomer, setNewCustomer] = useState({ name: "", phone: "", email: "" });
 
-  const handleAddCustomer = (e) => {
+  const fetchLiveCustomers = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/customers");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((c) => ({
+            id: c._id,
+            name: c.name,
+            phone: c.phone,
+            email: c.email || "N/A",
+            totalOrders: c.totalOrders || 0,
+            totalSpent: c.totalSpent || 0,
+            lastOrder: c.lastOrderDate ? new Date(c.lastOrderDate).toLocaleDateString() : "Recent",
+          }));
+          setCustomers(mapped);
+        }
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchLiveCustomers();
+  }, []);
+
+  const handleAddCustomer = async (e) => {
     e.preventDefault();
     if (!newCustomer.name || !newCustomer.phone) return;
 
-    const c = {
-      id: Date.now(),
-      name: newCustomer.name,
-      phone: newCustomer.phone,
-      email: newCustomer.email || "N/A",
-      totalOrders: 1,
-      totalSpent: 0,
-      lastOrder: "Today",
+    const payload = {
+      name: newCustomer.name.trim(),
+      phone: newCustomer.phone.trim(),
+      email: newCustomer.email?.trim() || "",
     };
 
-    setCustomers([c, ...customers]);
+    try {
+      const res = await fetch("http://localhost:5000/api/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const created = {
+          id: json.data._id,
+          name: json.data.name,
+          phone: json.data.phone,
+          email: json.data.email || "N/A",
+          totalOrders: 0,
+          totalSpent: 0,
+          lastOrder: "Today",
+        };
+        setCustomers([created, ...customers]);
+      } else {
+        setCustomers([{ id: Date.now(), ...payload, totalOrders: 0, totalSpent: 0, lastOrder: "Today" }, ...customers]);
+      }
+    } catch (err) {
+      setCustomers([{ id: Date.now(), ...payload, totalOrders: 0, totalSpent: 0, lastOrder: "Today" }, ...customers]);
+    }
+
     setNewCustomer({ name: "", phone: "", email: "" });
     setIsModalOpen(false);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     setCustomers(customers.filter((c) => c.id !== id));
+    try {
+      await fetch(`http://localhost:5000/api/customers/${id}`, { method: "DELETE" });
+    } catch (e) {}
   };
 
   const filtered = customers.filter((c) => {

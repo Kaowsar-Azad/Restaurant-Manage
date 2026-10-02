@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
 
 const INITIAL_TABLES = [
@@ -22,36 +22,88 @@ export default function TablesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTable, setNewTable] = useState({ tableNumber: "", capacity: 4, status: "Available" });
 
-  const handleAddTable = (e) => {
+  const fetchLiveTables = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/tables");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((t) => ({
+            id: t._id,
+            tableNumber: t.tableNumber,
+            capacity: t.capacity,
+            status: t.status,
+          }));
+          setTables(mapped);
+        }
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchLiveTables();
+  }, []);
+
+  const handleAddTable = async (e) => {
     e.preventDefault();
     if (!newTable.tableNumber) return;
 
-    const t = {
-      id: Date.now(),
-      tableNumber: newTable.tableNumber,
+    const payload = {
+      tableNumber: newTable.tableNumber.trim(),
       capacity: parseInt(newTable.capacity) || 2,
       status: newTable.status,
     };
 
-    setTables([...tables, t]);
+    try {
+      const res = await fetch("http://localhost:5000/api/tables", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const created = {
+          id: json.data._id,
+          tableNumber: json.data.tableNumber,
+          capacity: json.data.capacity,
+          status: json.data.status,
+        };
+        setTables([...tables, created]);
+      } else {
+        setTables([...tables, { id: Date.now(), ...payload }]);
+      }
+    } catch (err) {
+      setTables([...tables, { id: Date.now(), ...payload }]);
+    }
+
     setNewTable({ tableNumber: "", capacity: 4, status: "Available" });
     setIsModalOpen(false);
   };
 
-  const handleCycleStatus = (id) => {
+  const handleCycleStatus = async (id) => {
+    const target = tables.find((t) => t.id === id);
+    if (!target) return;
+    const nextIndex = (STATUS_CYCLE.indexOf(target.status) + 1) % STATUS_CYCLE.length;
+    const nextStatus = STATUS_CYCLE[nextIndex];
+
     setTables(
-      tables.map((t) => {
-        if (t.id === id) {
-          const nextIndex = (STATUS_CYCLE.indexOf(t.status) + 1) % STATUS_CYCLE.length;
-          return { ...t, status: STATUS_CYCLE[nextIndex] };
-        }
-        return t;
-      })
+      tables.map((t) => (t.id === id ? { ...t, status: nextStatus } : t))
     );
+
+    try {
+      await fetch(`http://localhost:5000/api/tables/${id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+    } catch (e) {}
   };
 
-  const handleDeleteTable = (id) => {
+  const handleDeleteTable = async (id) => {
     setTables(tables.filter((t) => t.id !== id));
+    try {
+      await fetch(`http://localhost:5000/api/tables/${id}`, { method: "DELETE" });
+    } catch (e) {}
   };
 
   const filteredTables = tables.filter((t) => filter === "All" || t.status === filter);

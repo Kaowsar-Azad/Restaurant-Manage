@@ -1,20 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { FiPlus, FiTrash2, FiSearch, FiX } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiPlus, FiTrash2, FiSearch, FiX, FiUploadCloud, FiImage } from "react-icons/fi";
 
-const INITIAL_CATEGORIES = ["All", "Burgers", "Pizzas", "Drinks", "Desserts"];
-
-const INITIAL_MENU_ITEMS = [
-  { id: 1, name: "Classic Beef Burger", category: "Burgers", price: 8.99, description: "Juicy beef patty with lettuce, tomato, cheddar cheese and special sauce.", status: "Active" },
-  { id: 2, name: "Double Cheese Smash", category: "Burgers", price: 11.50, description: "Two crispy smash patties, caramelized onions and melted American cheese.", status: "Active" },
-  { id: 3, name: "Margherita Supreme", category: "Pizzas", price: 14.00, description: "San Marzano tomato sauce, fresh buffalo mozzarella and fresh basil.", status: "Active" },
-  { id: 4, name: "Pepperoni Feast", category: "Pizzas", price: 16.50, description: "Generous pepperoni slices with spicy marinara and parmesan cheese.", status: "Active" },
-  { id: 5, name: "Iced Caramel Macchiato", category: "Drinks", price: 5.50, description: "Freshly brewed espresso with steamed milk and Madagascar vanilla syrup.", status: "Active" },
-  { id: 6, name: "Fresh Mint Lemonade", category: "Drinks", price: 4.25, description: "Zesty freshly squeezed lemons with crushed garden mint and soda.", status: "Active" },
-  { id: 7, name: "Warm Chocolate Lava Cake", category: "Desserts", price: 7.50, description: "Molten chocolate center served warm with French vanilla bean gelato.", status: "Active" },
-  { id: 8, name: "Classic Tiramisu", category: "Desserts", price: 6.75, description: "Italian ladyfingers soaked in dark espresso with sweet mascarpone cream.", status: "Active" },
-];
+import { INITIAL_CATEGORIES, INITIAL_MENU_ITEMS } from "@/data/menuData";
 
 export default function MenuPage() {
   const [categories, setCategories] = useState(INITIAL_CATEGORIES);
@@ -29,27 +18,92 @@ export default function MenuPage() {
     name: "",
     category: "Burgers",
     price: "",
+    image: "",
     description: "",
     status: "Active",
   });
 
   const [newCatName, setNewCatName] = useState("");
 
-  const handleAddItem = (e) => {
+  const fetchLiveMenu = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/menu");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const mapped = json.data.map((item) => ({
+            id: item._id,
+            name: item.name,
+            category: item.category?.name || item.category || "Burgers",
+            price: item.price,
+            image: item.image,
+            description: item.description,
+            status: item.status || "Active",
+          }));
+          setItems(mapped);
+          const distinctCats = ["All", ...new Set(mapped.map((i) => i.category).filter(Boolean))];
+          setCategories(distinctCats);
+        }
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchLiveMenu();
+  }, []);
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewItem({ ...newItem, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAddItem = async (e) => {
     e.preventDefault();
     if (!newItem.name || !newItem.price) return;
 
-    const item = {
-      id: Date.now(),
-      name: newItem.name,
+    const payload = {
+      name: newItem.name.trim(),
       category: newItem.category,
       price: parseFloat(newItem.price),
+      image: newItem.image || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
       description: newItem.description || "Freshly made signature dish.",
       status: newItem.status,
     };
 
-    setItems([item, ...items]);
-    setNewItem({ name: "", category: categories[1] || "Burgers", price: "", description: "", status: "Active" });
+    try {
+      const res = await fetch("http://localhost:5000/api/menu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        const created = {
+          id: json.data._id,
+          name: json.data.name,
+          category: json.data.category?.name || json.data.category,
+          price: json.data.price,
+          image: json.data.image,
+          description: json.data.description,
+          status: json.data.status,
+        };
+        setItems([created, ...items]);
+      } else {
+        const fallback = { id: Date.now(), ...payload };
+        setItems([fallback, ...items]);
+      }
+    } catch (err) {
+      const fallback = { id: Date.now(), ...payload };
+      setItems([fallback, ...items]);
+    }
+
+    setNewItem({ name: "", category: categories[1] || "Burgers", price: "", image: "", description: "", status: "Active" });
     setIsItemModalOpen(false);
   };
 
@@ -63,8 +117,11 @@ export default function MenuPage() {
     setIsCatModalOpen(false);
   };
 
-  const handleDeleteItem = (id) => {
+  const handleDeleteItem = async (id) => {
     setItems(items.filter((item) => item.id !== id));
+    try {
+      await fetch(`http://localhost:5000/api/menu/${id}`, { method: "DELETE" });
+    } catch (err) {}
   };
 
   const filteredItems = items.filter((item) => {
@@ -79,7 +136,7 @@ export default function MenuPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-brand-dark mb-1">Menu & Categories</h1>
-          <p className="text-brand-dark/60 text-sm">Manage your restaurant's food items and menu pricing.</p>
+          <p className="text-brand-dark/60 text-sm">Manage your restaurant's food items, imagery, and menu pricing.</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
@@ -130,14 +187,23 @@ export default function MenuPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {filteredItems.map((item) => (
           <div key={item.id} className="bg-brand-white rounded-2xl shadow-sm border border-black/5 overflow-hidden group hover:shadow-md transition-shadow flex flex-col">
-            <div className="h-44 bg-brand-bg relative flex items-center justify-center p-4">
-              <div className="w-16 h-16 rounded-2xl bg-brand-dark/5 flex items-center justify-center text-brand-dark font-bold text-xl">
-                {item.name.charAt(0)}
-              </div>
+            <div className="h-44 bg-brand-bg relative overflow-hidden flex items-center justify-center">
+              {item.image ? (
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-2xl bg-brand-dark/5 flex items-center justify-center text-brand-dark font-bold text-xl">
+                  {item.name.charAt(0)}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
               <button 
                 onClick={() => handleDeleteItem(item.id)}
                 title="Delete item"
-                className="absolute top-3 right-3 p-2 text-red-500 bg-white/90 hover:bg-red-50 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="absolute top-3 right-3 p-2 text-red-500 bg-white/90 backdrop-blur hover:bg-red-50 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-10"
               >
                 <FiTrash2 className="w-4 h-4" />
               </button>
@@ -170,13 +236,14 @@ export default function MenuPage() {
 
       {isItemModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-brand-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-black/5">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-brand-white rounded-2xl p-7 max-w-md w-full shadow-2xl border border-black/5 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-5">
               <h3 className="text-xl font-bold text-brand-dark">Add New Menu Item</h3>
               <button onClick={() => setIsItemModalOpen(false)} className="text-brand-dark/50 hover:text-brand-dark cursor-pointer">
                 <FiX className="w-5 h-5" />
               </button>
             </div>
+
             <form onSubmit={handleAddItem} className="space-y-4">
               <div>
                 <label className="text-xs font-semibold uppercase text-brand-dark/70 mb-1 block">Item Name</label>
@@ -219,19 +286,59 @@ export default function MenuPage() {
               </div>
 
               <div>
+                <label className="text-xs font-semibold uppercase text-brand-dark/70 mb-1.5 block">Food Image (Upload File or URL)</label>
+                
+                {newItem.image ? (
+                  <div className="relative w-full h-36 rounded-xl overflow-hidden mb-2 border border-black/10">
+                    <img src={newItem.image} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setNewItem({ ...newItem, image: "" })}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-lg hover:bg-black/80 transition-colors"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-black/15 rounded-xl cursor-pointer bg-brand-bg/30 hover:bg-brand-bg/60 transition-colors mb-2">
+                    <FiUploadCloud className="w-6 h-6 text-brand-dark/50 mb-1" />
+                    <span className="text-xs font-semibold text-brand-dark">Click to upload photo</span>
+                    <span className="text-[10px] text-brand-dark/40">PNG, JPG, WEBP up to 5MB</span>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageUpload} 
+                      className="hidden" 
+                    />
+                  </label>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <FiImage className="text-brand-dark/40 shrink-0 text-sm" />
+                  <input 
+                    type="url" 
+                    value={newItem.image}
+                    onChange={(e) => setNewItem({ ...newItem, image: e.target.value })}
+                    placeholder="Or paste image URL (https://...)" 
+                    className="w-full px-3 py-1.5 rounded-lg border border-black/10 bg-brand-bg/40 focus:border-brand-dark outline-none text-xs text-brand-dark"
+                  />
+                </div>
+              </div>
+
+              <div>
                 <label className="text-xs font-semibold uppercase text-brand-dark/70 mb-1 block">Description</label>
                 <textarea 
-                  rows="3"
+                  rows="2"
                   value={newItem.description}
                   onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                   placeholder="Ingredients, recipe details, etc." 
-                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 bg-brand-bg/40 focus:border-brand-dark outline-none text-sm text-brand-dark resize-none"
+                  className="w-full px-4 py-2 rounded-xl border border-black/10 bg-brand-bg/40 focus:border-brand-dark outline-none text-sm text-brand-dark resize-none"
                 />
               </div>
 
               <button 
                 type="submit" 
-                className="w-full py-3 mt-4 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
+                className="w-full py-3 mt-2 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
               >
                 Create Item
               </button>
@@ -242,8 +349,8 @@ export default function MenuPage() {
 
       {isCatModalOpen && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-brand-white rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-black/5">
-            <div className="flex justify-between items-center mb-6">
+          <div className="bg-brand-white rounded-2xl p-7 max-w-sm w-full shadow-2xl border border-black/5">
+            <div className="flex justify-between items-center mb-5">
               <h3 className="text-xl font-bold text-brand-dark">Add New Category</h3>
               <button onClick={() => setIsCatModalOpen(false)} className="text-brand-dark/50 hover:text-brand-dark cursor-pointer">
                 <FiX className="w-5 h-5" />
@@ -263,7 +370,7 @@ export default function MenuPage() {
               </div>
               <button 
                 type="submit" 
-                className="w-full py-3 mt-4 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
+                className="w-full py-3 mt-2 bg-brand-accent text-brand-dark font-semibold rounded-xl hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer"
               >
                 Save Category
               </button>

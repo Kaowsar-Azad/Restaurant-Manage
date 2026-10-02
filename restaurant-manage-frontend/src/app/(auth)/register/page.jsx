@@ -128,7 +128,6 @@ export default function RegisterPage() {
           >
             <option value="Staff">Staff</option>
             <option value="Manager">Manager</option>
-            <option value="Admin">Admin</option>
           </select>
         </div>
 
