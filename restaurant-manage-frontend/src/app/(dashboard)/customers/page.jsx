@@ -129,7 +129,7 @@ export default function CustomersPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[620px]">
             <thead>
               <tr className="border-b border-black/5 bg-brand-bg/50 text-brand-dark/60 text-xs uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold">Customer</th>

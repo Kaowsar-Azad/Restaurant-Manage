@@ -43,9 +43,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md bg-brand-white p-10 rounded-2xl shadow-xl shadow-black/5">
-      <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-brand-dark">
+    <div className="w-full max-w-md bg-brand-white p-6 sm:p-10 rounded-2xl shadow-xl shadow-black/5">
+      <div className="mb-6 sm:mb-10 text-center">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-brand-dark">
           Welcome Back
         </h1>
         <p className="text-brand-dark/60 text-sm">

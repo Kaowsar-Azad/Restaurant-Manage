@@ -154,7 +154,7 @@ export default function TablesPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
         {filteredTables.map((table) => {
           const isOccupied = table.status === "Occupied";
           return (
@@ -163,7 +163,7 @@ export default function TablesPage() {
               className={`relative bg-brand-white rounded-2xl border ${isOccupied ? "border-brand-dark/30 shadow-md" : "border-black/5 shadow-sm"} overflow-hidden group transition-all flex flex-col justify-between`}
             >
               <div className={`h-2 ${isOccupied ? "bg-brand-dark" : "bg-brand-bg"}`}></div>
-              <div className="p-6 text-center">
+              <div className="p-4 sm:p-6 text-center">
                 <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 font-bold text-xl ${isOccupied ? "bg-brand-dark text-brand-accent" : "bg-brand-bg text-brand-dark"}`}>
                   {table.tableNumber.replace(/[^0-9]/g, "") || table.tableNumber.charAt(0)}
                 </div>
