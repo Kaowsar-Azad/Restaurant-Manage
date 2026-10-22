@@ -1,3 +1,19 @@
+/**
+ * --------------------------------------------------------------------------
+ * পেজ: অর্ডার ও লাইভ পিওএস টার্মিনাল (src/app/(dashboard)/orders/page.jsx)
+ * রিকোয়ারমেন্ট: সেকশন ৮ ও ৯ (স্টাফ ট্যাগিং ও আউট-অফ-স্টক ব্যবস্থা)
+ * --------------------------------------------------------------------------
+ * 📌 এই পেজের মূল দায়িত্ব:
+ *    ১. লাইভ কাউন্টার ও ডাইন-ইন টেবিলের রানিং অর্ডার তৈরি ও বিল প্রিন্ট করা।
+ *    ২. অর্ডারে স্টাফের নাম ও টাইম ট্যাগিং:
+ *       - প্রতিটি অর্ডার সেভ হওয়ার সময় স্বয়ংক্রিয়ভাবে সংশ্লিষ্ট স্টাফের নাম ও ইউনিক আইডি রেকর্ড হয়।
+ *    ৩. আউট-অফ-স্টক রিয়েল-টাইম চেক:
+ *       - যে খাবারের প্রস্তুত সংখ্যা শূন্য (০) হয়ে যাবে, ফুড পিকারে তা লাল রঙে 'Out of Stock'
+ *         হিসেবে দেখাবে এবং বাটন লক থাকবে।
+ *    ৪. পেমেন্ট গ্রহণ ও টেবিল খালি (Vacant) করা।
+ * --------------------------------------------------------------------------
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -68,6 +84,8 @@ export default function OrdersPage() {
   const [cart, setCart] = useState([
     { id: 1, name: "Classic Beef Burger", price: 8.99, quantity: 1 },
   ]);
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("Paid");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("Cash");
 
   const fetchLiveOrders = async () => {
     try {
@@ -167,7 +185,9 @@ export default function OrdersPage() {
       subtotal: parseFloat(subtotal.toFixed(2)),
       tax: parseFloat(tax.toFixed(2)),
       total: parseFloat(total.toFixed(2)),
-      paymentStatus: "Paid",
+      paymentStatus: selectedPaymentStatus,
+      paymentMethod: selectedPaymentMethod,
+      paidAmount: selectedPaymentStatus === "Paid" ? parseFloat(total.toFixed(2)) : 0,
       orderStatus: "Preparing",
     };
 
@@ -190,7 +210,9 @@ export default function OrdersPage() {
           subtotal: created.subtotal,
           tax: created.tax,
           total: created.total,
-          paymentStatus: created.paymentStatus,
+          paymentStatus: created.paymentStatus || selectedPaymentStatus,
+          paymentMethod: created.paymentMethod || selectedPaymentMethod,
+          paidAmount: created.paidAmount !== undefined ? created.paidAmount : (selectedPaymentStatus === "Paid" ? created.total : 0),
           orderStatus: created.orderStatus,
         };
         setOrders([newOrder, ...orders]);
@@ -491,24 +513,56 @@ export default function OrdersPage() {
             <div className="border-t border-black/5 pt-3 flex flex-col gap-1.5 text-xs">
               <div className="flex justify-between text-brand-dark/60">
                 <span>Subtotal</span>
-                <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold">৳{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-brand-dark/60">
                 <span>Tax (5%)</span>
-                <span className="font-semibold">${tax.toFixed(2)}</span>
+                <span className="font-semibold">৳{tax.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-brand-dark text-sm pt-1.5 border-t border-black/5">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>৳{total.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Payment Status & Method Selector for Staff */}
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-black/5">
+              <div>
+                <label className="text-[10px] font-bold text-brand-dark/60 uppercase tracking-wider block mb-1">
+                  পেমেন্ট স্ট্যাটাস
+                </label>
+                <select
+                  value={selectedPaymentStatus}
+                  onChange={(e) => setSelectedPaymentStatus(e.target.value)}
+                  className="w-full bg-brand-bg px-2.5 py-2 rounded-xl text-xs font-bold text-brand-dark border border-black/5 outline-none cursor-pointer"
+                >
+                  <option value="Paid">Paid (পরিশোধিত)</option>
+                  <option value="Pending">Pending (বকেয়া)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-brand-dark/60 uppercase tracking-wider block mb-1">
+                  পেমেন্ট মাধ্যম
+                </label>
+                <select
+                  value={selectedPaymentMethod}
+                  onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                  className="w-full bg-brand-bg px-2.5 py-2 rounded-xl text-xs font-semibold text-brand-dark border border-black/5 outline-none cursor-pointer"
+                >
+                  <option value="Cash">Cash (ক্যাশ)</option>
+                  <option value="bKash">bKash (বিকাশ)</option>
+                  <option value="Card">Card (কার্ড)</option>
+                </select>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={cart.length === 0}
-              className="w-full bg-brand-accent hover:brightness-105 disabled:opacity-40 disabled:hover:brightness-100 text-brand-dark font-bold text-xs py-3 rounded-xl transition-all shadow-sm cursor-pointer mt-1"
+              className="w-full bg-primary hover:bg-brand-hover disabled:opacity-40 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-sm cursor-pointer mt-1"
             >
-              Create Order Ticket (${total.toFixed(2)})
+              অর্ডার টিকিট তৈরি করুন (৳{total.toFixed(2)})
             </button>
           </form>
         </div>
