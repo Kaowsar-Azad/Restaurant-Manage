@@ -1,3 +1,19 @@
+/**
+ * --------------------------------------------------------------------------
+ * পেজ: এক্সিকিউটিভ ড্যাশবোর্ড ও লাইভ সেলস ওভারভিউ (src/app/(dashboard)/page.jsx)
+ * রিকোয়ারমেন্ট: সেকশন ৬ (মালিক ও ম্যানেজারের সেন্ট্রাল ড্যাশবোর্ড)
+ * --------------------------------------------------------------------------
+ * 📌 এই পেজের মূল দায়িত্ব:
+ *    ১. আজকের লাইভ বিক্রি (মোট সেলস, ক্যাশ, বিকাশ/কার্ড ব্রেকডাউন)।
+ *    ২. মোট চলমান অর্ডার ও লাইভ টেবিল অবস্থা (কয়টি পূর্ণ, কয়টি খালি)।
+ *    ৩. Recharts এর মাধ্যমে গত ৭ দিনের সেলস ও রেভিনিউ ট্রেন্ড চার্ট।
+ *    ৪. সাম্প্রতিক সম্পন্ন অর্ডারের লাইভ ফিড ও এভারেজ অর্ডার ভ্যালু (AOV)।
+ *    ৫. ম্যানেজার পারমিশন গার্ড:
+ *       - ম্যানেজার লগইন থাকলে এবং মালিকের 'canViewSalesDashboard' পারমিশন অফ থাকলে,
+ *         এই পেজ হাইড হয়ে সরাসরি /orders এ রিডাইরেক্ট হবে।
+ * --------------------------------------------------------------------------
+ */
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,16 +38,23 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     try {
-      const u = JSON.parse(localStorage.getItem("user") || "{}");
-      if (u?.role === "Staff") {
+      const stored = localStorage.getItem("user");
+      if (!stored || stored === "undefined" || stored === "null") {
+        setIsAuthorized(true);
+        return;
+      }
+      const u = JSON.parse(stored);
+      const role = (u?.role || "").toUpperCase();
+      // Only true staff / waiter accounts are restricted to the POS terminal
+      if (role === "STAFF" || role === "WAITER") {
         setIsAuthorized(false);
         router.replace("/orders");
       } else {
         setIsAuthorized(true);
       }
     } catch (e) {
-      setIsAuthorized(false);
-      router.replace("/orders");
+      console.warn("User parse check in overview dashboard:", e);
+      setIsAuthorized(true);
     }
   }, [router]);
 

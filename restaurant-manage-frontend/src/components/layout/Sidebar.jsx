@@ -1,21 +1,41 @@
+/**
+ * --------------------------------------------------------------------------
+ * সাইডবার নেভিগেশন কম্পোনেন্ট (src/components/layout/Sidebar.jsx)
+ * --------------------------------------------------------------------------
+ * 📌 ফিল্টার্ড কোর মেনু আইটেমস:
+ *    ১. Staff: Orders (POS), Tables
+ *    ২. Manager: Orders, Menu & Stock, Tables, Staff Sales
+ *    ৩. Admin / Owner: Overview, Orders, Menu & Stock, Tables, Staff Sales, Team & Roles
+ * --------------------------------------------------------------------------
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiList, FiGrid, FiUsers, FiMonitor, FiX } from "react-icons/fi";
+import {
+  FiHome,
+  FiList,
+  FiGrid,
+  FiMonitor,
+  FiTrendingUp,
+  FiShield,
+  FiX,
+} from "react-icons/fi";
 
-const ALL_MENU_ITEMS = [
-  { name: "Overview", icon: FiHome, path: "/", roles: ["Admin", "Manager"] },
-  { name: "Orders (POS)", icon: FiMonitor, path: "/orders", roles: ["Admin", "Manager", "Staff"] },
-  { name: "Menu & Categories", icon: FiGrid, path: "/menu", roles: ["Admin", "Manager", "Staff"] },
-  { name: "Tables", icon: FiList, path: "/tables", roles: ["Admin", "Manager", "Staff"] },
-  { name: "Customers", icon: FiUsers, path: "/customers", roles: ["Admin", "Manager"] },
+const CORE_MENU_ITEMS = [
+  { name: "Overview", icon: FiHome, path: "/", roles: ["OWNER", "Admin", "Owner"] },
+  { name: "Orders (POS)", icon: FiMonitor, path: "/orders", roles: ["OWNER", "Admin", "Owner", "Manager", "Staff"] },
+  { name: "Menu & Stock", icon: FiGrid, path: "/menu", roles: ["OWNER", "Admin", "Owner", "Manager"] },
+  { name: "Tables", icon: FiList, path: "/tables", roles: ["OWNER", "Admin", "Owner", "Manager", "Staff"] },
+  { name: "Staff Sales", icon: FiTrendingUp, path: "/analytics/staff-sales", roles: ["OWNER", "Admin", "Owner", "Manager"] },
+  { name: "Team Management", icon: FiShield, path: "/staff", roles: ["OWNER", "Admin", "Owner"] },
 ];
 
 export default function Sidebar({ isOpen = false, onClose = () => {} }) {
   const pathname = usePathname();
-  const [role, setRole] = useState("Staff");
+  const [role, setRole] = useState("OWNER");
 
   useEffect(() => {
     try {
@@ -27,7 +47,10 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
     } catch (e) {}
   }, []);
 
-  const visibleItems = ALL_MENU_ITEMS.filter((item) => item.roles.includes(role));
+  const normRole = (role || "").toUpperCase();
+  const visibleItems = CORE_MENU_ITEMS.filter((item) =>
+    item.roles.some((r) => r.toUpperCase() === normRole)
+  );
 
   return (
     <aside
@@ -51,7 +74,7 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
         </button>
       </div>
 
-      <nav className="flex-1 py-6 px-4 space-y-1.5 overflow-y-auto">
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
         {visibleItems.map((item) => {
           const isActive = pathname === item.path;
           return (
@@ -59,23 +82,29 @@ export default function Sidebar({ isOpen = false, onClose = () => {} }) {
               key={item.name}
               href={item.path}
               onClick={onClose}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium ${
                 isActive
                   ? "bg-brand-accent text-brand-dark font-bold shadow-sm"
                   : "text-brand-bg/70 hover:bg-white/5 hover:text-brand-bg"
               }`}
             >
-              <item.icon className={`w-5 h-5 ${isActive ? "text-brand-dark" : "text-brand-bg/70"}`} />
-              <span>{item.name}</span>
+              <item.icon className={`w-4 h-4 shrink-0 ${isActive ? "text-brand-dark" : "text-brand-bg/70"}`} />
+              <span className="truncate">{item.name}</span>
             </Link>
           );
         })}
       </nav>
 
       <div className="p-4 border-t border-white/5">
-        <div className="bg-white/5 rounded-xl p-4 text-center">
-          <p className="text-brand-bg/40 text-xs mb-1">RestoManage POS</p>
-          <p className="text-brand-bg/80 font-medium text-xs">Role: {role}</p>
+        <div className="bg-white/5 rounded-xl p-3 text-center">
+          <p className="text-brand-bg/40 text-[11px] mb-0.5">Restroniti Cloud POS</p>
+          <p className="text-brand-bg/80 font-medium text-xs">
+            {normRole === "OWNER" || normRole === "ADMIN"
+              ? "👔 রেস্টুরেন্ট ওনার (Owner)"
+              : normRole === "MANAGER"
+              ? "📋 ম্যানেজার (Manager)"
+              : "🏃 স্টাফ / ওয়েটার (Staff)"}
+          </p>
         </div>
       </div>
     </aside>

@@ -1,10 +1,9 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const Category = require("./models/Category");
-const MenuItem = require("./models/MenuItem");
-const Customer = require("./models/Customer");
-const RestaurantTable = require("./models/RestaurantTable");
-const Order = require("./models/Order");
+const Category = require("./src/models/Category");
+const MenuItem = require("./src/models/MenuItem");
+const RestaurantTable = require("./src/models/RestaurantTable");
+const Order = require("./src/models/Order");
 
 const categories = [
   { name: "Burgers", description: "Juicy handcrafted burgers" },
@@ -37,7 +36,6 @@ const seed = async () => {
 
     await Category.deleteMany({});
     await MenuItem.deleteMany({});
-    await Customer.deleteMany({});
     await RestaurantTable.deleteMany({});
     await Order.deleteMany({});
 
