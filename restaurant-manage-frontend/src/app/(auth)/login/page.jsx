@@ -40,9 +40,19 @@ export default function LoginPage() {
         throw new Error(data.message || "Login failed");
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/");
+      const payload = data.data || data;
+      const token = payload.token || data.token;
+      const user = payload.user || data.user;
+
+      if (token) localStorage.setItem("token", token);
+      if (user) localStorage.setItem("user", JSON.stringify(user));
+
+      const role = (user?.role || "OWNER").toUpperCase();
+      if (role === "STAFF" || role === "WAITER" || role === "CASHIER") {
+        router.push("/orders");
+      } else {
+        router.push("/");
+      }
     } catch (err) {
       setError(err.message);
     } finally {

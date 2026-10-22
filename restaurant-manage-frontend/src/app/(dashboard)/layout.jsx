@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "../../components/layout/Sidebar";
 import Topbar from "../../components/layout/Topbar";
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -16,12 +17,16 @@ export default function DashboardLayout({ children }) {
     const user = localStorage.getItem("user");
 
     if (!token || !user) {
+      if (pathname === "/") {
+        router.replace("/landing");
+        return;
+      }
       router.replace("/login");
     } else {
       setIsAuthenticated(true);
       setLoading(false);
     }
-  }, [router]);
+  }, [router, pathname]);
 
   if (loading) {
     return (

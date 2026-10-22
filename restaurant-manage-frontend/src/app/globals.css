@@ -1,20 +1,227 @@
+/**
+ * ==============================================================================
+ * 🍽️ রেস্তোরাঁ ম্যানেজমেন্ট ডিজাইন সিস্টেম গাইড (Restaurant Design System Guide)
+ * রেফারেন্স: Restaurant SaaS / Visual Design System V1.0 (PDF Specs)
+ * ==============================================================================
+ * 
+ * 📌 ১. টেক্সট কালার (Text Colors):
+ *    - টেক্সট প্রাইমারি (মূল লেখা/হেডিং)     : text-foreground বা text-brand-dark  -> #2C170E (ডিপ ব্রাউন)
+ *    - টেক্সট সেকেন্ডারি (সাব-হেডিং/বিবরণ)  : text-muted-foreground              -> #64748B (সফট স্লেট গ্রে)
+ *    - টেক্সট ব্র্যান্ড রেড (হাইলাইট/অ্যাকশন) : text-primary                       -> #C61E2B (অ্যাকশন রেড)
+ *    - টেক্সট ওয়ার্ম অরেঞ্জ (ট্যাগ/অফার)     : text-secondary                     -> #FA7327 (রেস্তোরাঁ অরেঞ্জ)
+ * 
+ * 📌 ২. বাটন কালার ও হোভার ইফেক্ট (Button Colors & Hover Effects):
+ *    - প্রাইমারি বাটন (অর্ডার নিশ্চিত / পেমেন্ট / সেভ):
+ *      ক্লাস  : bg-primary text-primary-foreground hover:bg-brand-hover
+ *      কালার : bg: #C61E2B (অ্যাকশন রেড) | হোভার: #A71925 (গাঢ় লাল) | টেক্সট: সাদা
+ * 
+ *    - সেকেন্ডারি বাটন (বাতিল / পিছনে যান / ফিল্টার / ড্রাফট):
+ *      ক্লাস  : bg-card text-foreground border border-border hover:bg-muted
+ *      কালার : bg: #FFFFFF (সাদা) | টেক্সট: #2C170E | বর্ডার: #E5E7EB | হোভার: #FFF8F1 (সফট ক্রিম)
+ * 
+ *    - অ্যাকসেন্ট বাটন (+ খাবার যোগ করুন / স্পেশাল অফার):
+ *      ক্লাস  : bg-secondary text-secondary-foreground hover:opacity-90
+ *      কালার : bg: #FA7327 (সিগনেচার অরেঞ্জ) | টেক্সট: সাদা
+ * 
+ *    - ডেঞ্জার বাটন (ডিলিট বা অর্ডার বাতিল):
+ *      ক্লাস  : bg-destructive text-white hover:opacity-90
+ *      কালার : bg: #B91C1C (লাল) | টেক্সট: সাদা
+ * 
+ * 📌 ৩. হোয়াইট থিম বনাম ডার্ক থিম (Light vs Dark Theme):
+ *    - হোয়াইট থিম (Day Shift / ক্যাশিয়ার কাউন্টার):
+ *      * পুরো পেজের ব্যাকগ্রাউন্ড: bg-background (#F7F7F9 - সফট অফ-হোয়াইট ক্যানভাস)
+ *      * কার্ড / বক্স ব্যাকগ্রাউন্ড: bg-card (#FFFFFF - পিওর হোয়াইট)
+ *      * টেক্সট কালার: text-foreground (#2C170E - ডিপ এসপ্রেসো ব্রাউন)
+ * 
+ *    - ডার্ক থিম (Night Shift / কিচেন ডিসপ্লে মোড):
+ *      * পুরো পেজের ব্যাকগ্রাউন্ড: bg-background (#140C08 - ডার্ক এসপ্রেসো)
+ *      * কার্ড / বক্স ব্যাকগ্রাউন্ড: bg-card (#1F140E - ডার্ক ব্রাউন)
+ *      * টেক্সট কালার: text-foreground (#F7F7F9 - সফট লাইট)
+ * 
+ * 📌 ৪. অর্ডার স্ট্যাটাস ব্যাজ (Order Status Badges):
+ *    - অপেক্ষারত : badge-pending   (হলুদ-অরেঞ্জ সফট ব্যাকগ্রাউন্ড)
+ *    - রান্না হচ্ছে : badge-preparing (সফট ব্লু ব্যাকগ্রাউন্ড)
+ *    - প্রস্তুত     : badge-ready     (সফট এমারেল্ড গ্রিন ব্যাকগ্রাউন্ড)
+ *    - বাতিল      : badge-cancelled (সফট রেড ব্যাকগ্রাউন্ড)
+ * ==============================================================================
+ */
+
 @import "tailwindcss";
 
-@theme {
-  --color-brand-bg: #f0f4f1;
-  --color-brand-dark: #28282b;
-  --color-brand-accent: #f2ffbd;
-  --color-brand-white: #ffffff;
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-en), var(--font-bn), sans-serif;
+  --font-heading: var(--font-en), var(--font-bn), sans-serif;
+
+  /* 01. Restaurant Brand Colors (PDF Spec) */
+  --color-brand-primary: #C61E2B;       /* Action Red (WCAG 5.8:1 contrast with white) */
+  --color-brand-hover: #A71925;         /* Primary Action Hover */
+  --color-brand-secondary: #FA7327;     /* Restaurant Warm Orange */
+  --color-brand-dark: #2C170E;          /* Deep Espresso Ink */
+  --color-brand-cream: #FFF8F1;         /* Soft Cream Highlight */
+
+  /* 02. Order Status Semantic Tokens (PDF Page 3) */
+  --color-status-pending-bg: #FFF3E6;
+  --color-status-pending-text: #92400E;
+  --color-status-preparing-bg: #EFF6FF;
+  --color-status-preparing-text: #1D4ED8;
+  --color-status-ready-bg: #ECFDF5;
+  --color-status-ready-text: #047857;
+  --color-status-cancelled-bg: #FEF2F2;
+  --color-status-cancelled-text: #B91C1C;
+
+  /* 03. Standard System Color Variables */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Radius Tokens */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  /* Backward Compatibility Aliases for Team */
+  --color-brand: #C61E2B;
+  --color-brand-accent: #FA7327;
+  --color-brand-bg: #F7F7F9;
 }
 
-@layer base {
-  :root {
-    --background: var(--color-brand-bg);
-    --foreground: var(--color-brand-dark);
-  }
-  
-  html, body {
-    @apply bg-brand-bg text-brand-dark antialiased;
-    scroll-behavior: smooth;
-  }
+:root {
+  /* Light Theme (Day Shift) */
+  --background: #F7F7F9;           /* Canvas Off-white */
+  --foreground: #2C170E;           /* Deep Espresso Ink */
+
+  --card: #FFFFFF;
+  --card-foreground: #2C170E;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #2C170E;
+
+  --primary: #C61E2B;              /* Primary Action Red */
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #FA7327;            /* Warm Orange Accent */
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #FFF8F1;                /* Warm Cream */
+  --muted-foreground: #64748B;
+
+  --accent: #FFF8F1;
+  --accent-foreground: #C61E2B;
+
+  --destructive: #B91C1C;
+
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #C61E2B;
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  /* Dark Theme (Night Shift / Kitchen Mode) */
+  --background: #140C08;
+  --foreground: #F7F7F9;
+
+  --card: #1F140E;
+  --card-foreground: #F7F7F9;
+
+  --popover: #1F140E;
+  --popover-foreground: #F7F7F9;
+
+  --primary: #E52E3E;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #FA7327;
+  --secondary-foreground: #FFFFFF;
+
+  --muted: #2A1B13;
+  --muted-foreground: #94A3B8;
+
+  --accent: #2A1B13;
+  --accent-foreground: #FF8A4C;
+
+  --destructive: #EF4444;
+
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #FA7327;
+}
+
+/* Base Styles */
+* {
+  border-color: var(--border);
+  outline: none;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Restaurant Crimson Red Gradient */
+.text-gradient-brand {
+  background-image: linear-gradient(135deg, #FA7327 0%, #C61E2B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.bg-gradient-brand {
+  background: linear-gradient(135deg, #FA7327 0%, #C61E2B 100%) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0px 4px 14px rgba(198, 30, 43, 0.25) !important;
+  transition: all 0.2s ease-in-out;
+}
+.bg-gradient-brand:hover {
+  background: linear-gradient(135deg, #E25E12 0%, #A71925 100%) !important;
+  box-shadow: 0px 6px 18px rgba(198, 30, 43, 0.35) !important;
+}
+
+/* Order Semantic Status Badges (PDF Page 3) */
+.badge-pending {
+  background-color: var(--color-status-pending-bg);
+  color: var(--color-status-pending-text);
+  border: 1px solid #FED7AA;
+}
+.badge-preparing {
+  background-color: var(--color-status-preparing-bg);
+  color: var(--color-status-preparing-text);
+  border: 1px solid #BFDBFE;
+}
+.badge-ready {
+  background-color: var(--color-status-ready-bg);
+  color: var(--color-status-ready-text);
+  border: 1px solid #A7F3D0;
+}
+.badge-cancelled {
+  background-color: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-text);
+  border: 1px solid #FECACA;
+}
+
+/* Number Formats for POS Prices */
+.tabular-numbers {
+  font-variant-numeric: tabular-nums;
 }
