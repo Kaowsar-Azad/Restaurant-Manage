@@ -3,9 +3,7 @@ node_modules/
 **/node_modules/
 
 # Environment files
-.env
 .env*.local
-**/.env
 **/.env*.local
 
 # Next.js build output
@@ -23,3 +21,12 @@ yarn-error.log*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Environment variables & secrets (added by GitHub Guardian)
+*.env
+!.env.example
+!.env.sample
+.envrc
+.venv/
+venv/
+config.bat
